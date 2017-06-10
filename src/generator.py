@@ -1,6 +1,7 @@
 import os
 import sys
 
+from template_engine.base import Collector
 import utils
 
 
@@ -70,3 +71,24 @@ def new_site(root='.', force=False):
         filepath = os.path.join(root, filename)
         with utils.open_file(filepath, "w", create_dir=True) as wfile:
             wfile.write(text)
+
+
+def build_files(root='.', dest='site', force=False):
+    if os.path.exists(os.path.join(root, 'index.html')):
+        if os.path.exists(os.path.join(root, 'site')) and not force:
+            print("There are already exists folder. Try -F for rewrite.")
+            sys.exit(1)
+        elif not os.path.exists(os.path.join(root, 'site')):
+            os.mkdir(dest)
+        files_for_building = [x for x in os.listdir(root) if x[-5:] == '.html']
+        for filename in files_for_building:
+            build_file(filename, dest)
+    else:
+        print("Sorry, index.html not found! Try to create new site, use for it 'new'")
+        sys.exit(1)
+
+
+def build_file(filename, destination, root='.'):
+    res = Collector(os.path.abspath(root), "/" + filename).assemble_page(destionation_url=str(destination))
+    with open(os.path.abspath(root) + "/" + destination + "/" + filename, 'w') as f:
+        f.write(res)
