@@ -3,6 +3,7 @@ import sys
 
 from template_engine.base import Collector
 import utils
+from distutils.dir_util import copy_tree
 
 
 NEW_INDEX_STR = """<!DOCTYPE html>
@@ -83,6 +84,8 @@ def build_files(root='.', dest='site', force=False):
         files_for_building = [x for x in os.listdir(root) if x[-5:] == '.html']
         for filename in files_for_building:
             build_file(filename, dest)
+        stylesheet_dir = root+'/css'
+        copy_tree(stylesheet_dir, root+'/'+dest+'/css')
     else:
         print("Sorry, index.html not found! Try to create new site, use for it 'new'")
         sys.exit(1)
