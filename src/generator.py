@@ -130,7 +130,8 @@ def watching(root='./', dest='site'):
     files_for_watching = []
     for adress in dirs_for_watching:
         files_in_dir = os.listdir(os.path.realpath(adress))
-        files_for_watching += [os.path.realpath(adress + x) for x in files_in_dir if os.path.isfile(adress + x) and (x[-5:] == '.html' or x[-4:] == '.css')]
+        files_for_watching += [os.path.realpath(adress + x) for x in files_in_dir \
+            if os.path.isfile(adress + x) and (x[-5:] == '.html' or x[-4:] == '.css')]
     watchcat = Watchcat(*files_for_watching)
     watching_thread = threading.Thread(target=watchcat.run_watching())
     watching_thread.start()
