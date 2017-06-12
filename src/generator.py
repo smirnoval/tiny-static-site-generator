@@ -2,6 +2,9 @@ import os
 import sys
 import time
 import threading
+import urllib.parse
+import posixpath
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 from template_engine.base import Collector
 from distutils.dir_util import copy_tree
@@ -112,14 +115,14 @@ def build_files(root='.', dest='site', force=False, watch=False):
 
 
 def build_file(filename, destination, root='.'):
+    """There you can connect any template engine whatever you like."""
     res = Collector(os.path.abspath(root), "/" + filename).assemble_page(destionation_url=str(destination))
     with open(os.path.abspath(root) + "/" + destination + "/" + filename, 'w') as f:
         f.write(res)
 
 
 def watching(root='./', dest='site'):
-    """There you can connect any watcher whatever you like.
-       For that you need..."""
+    """There you can connect any watcher whatever you like."""
     dirs_for_watching = [root, root+'/templates/', root+'/css/']
     files_for_watching = []
     for adress in dirs_for_watching:
@@ -137,3 +140,54 @@ def watching(root='./', dest='site'):
                 num_changes = watchcat.num_changes
     except KeyboardInterrupt:
         watching_thread.join()
+
+
+def serve_files(root='.', dest='site', watch=False, port=8000, force=False):
+
+    class RequestHandler(SimpleHTTPRequestHandler):
+
+        def translate_path(self, path):
+
+            root = os.path.join(os.getcwd(), dest)
+            path = path.split('?', 1)[0]
+            path = path.split('#', 1)[0]
+            path = posixpath.normpath(urllib.parse.unquote(path))
+            words = path.split('/')
+            words = [_f for _f in words if _f]
+            path = root
+            for word in words:
+                drive, word = os.path.splitdrive(word)
+                head, word = os.path.split(word)
+                if word in (os.curdir, os.pardir):
+                    continue
+                path = os.path.join(path, word)
+            print(path)
+            return path
+
+    class SimpleHTTPServer(HTTPServer):
+
+        def serve(self):
+            self._stopped = False
+            while not self._stopped:
+                try:
+                    httpd.handle_request()
+                except:
+                    self._stopped = True
+                    self.server_close()
+
+        def shutdown(self):
+            self._stopped = True
+            self.server_close()
+
+    server_address = ('', port)
+    httpd = SimpleHTTPServer(server_address, RequestHandler)
+    server_thread = threading.Thread(target=httpd.serve)
+    server_thread.daemon = True
+    server_thread.start()
+
+    print("HTTP server started on port {0}".format(server_address[1]))
+
+    build_files(root=root, dest=dest, force=True)
+
+    if watch:
+        watching(root, dest)
