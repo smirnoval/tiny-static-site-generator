@@ -65,6 +65,7 @@ NEW_SITE = {
 
 
 def new_site(root='.', force=False):
+    """Create new site tree with template NEW_INDEX_STR, NEW_ABOUT_STR and etc."""
     if os.path.exists(os.path.join(root, 'index.html')):
         if not force:
             print("There are already index.html in the source folder.")
@@ -79,6 +80,7 @@ def new_site(root='.', force=False):
 
 
 def open_file(path, mode='rb', create_dir=False, create_mode=0o755):
+    """Func for writing data while creating site."""
     try:
         newfile = open(path, mode)
     except IOError:
@@ -95,6 +97,7 @@ def open_file(path, mode='rb', create_dir=False, create_mode=0o755):
 
 
 def build_files(root='.', dest='site', force=False, watch=False):
+    """Build all pages from template to site directory."""
     if os.path.exists(os.path.join(root, 'index.html')):
         if os.path.exists(os.path.join(root, 'site')) and not force:
             print("There are already exists folder. Try -F for rewrite.")
@@ -104,8 +107,8 @@ def build_files(root='.', dest='site', force=False, watch=False):
         files_for_building = [x for x in os.listdir(root) if x[-5:] == '.html']
         for filename in files_for_building:
             build_file(filename, dest)
-        stylesheet_dir = root+'/css'
-        copy_tree(stylesheet_dir, root+'/'+dest+'/css')
+        stylesheet_dir = root + '/css'
+        copy_tree(stylesheet_dir, root + '/' + dest + '/css')
     else:
         print("Sorry, index.html not found! Try to create new site, use for it 'new'")
         sys.exit(1)
@@ -123,11 +126,11 @@ def build_file(filename, destination, root='.'):
 
 def watching(root='./', dest='site'):
     """There you can connect any watcher whatever you like."""
-    dirs_for_watching = [root, root+'/templates/', root+'/css/']
+    dirs_for_watching = [root, root + '/templates/', root + '/css/']
     files_for_watching = []
     for adress in dirs_for_watching:
         files_in_dir = os.listdir(os.path.realpath(adress))
-        files_for_watching += [os.path.realpath(adress+x) for x in files_in_dir if os.path.isfile(adress+x) and (x[-5:]=='.html' or x[-4:]=='.css')]
+        files_for_watching += [os.path.realpath(adress + x) for x in files_in_dir if os.path.isfile(adress + x) and (x[-5:] == '.html' or x[-4:] == '.css')]
     watchcat = Watchcat(*files_for_watching)
     watching_thread = threading.Thread(target=watchcat.run_watching())
     watching_thread.start()
@@ -143,7 +146,11 @@ def watching(root='./', dest='site'):
 
 
 def serve_files(root='.', dest='site', watch=False, port=8000, force=False):
+    """
+    Simple and all used example of HttpServer.
 
+    If you saw one, you will understand and this.
+    """
     class RequestHandler(SimpleHTTPRequestHandler):
 
         def translate_path(self, path):
